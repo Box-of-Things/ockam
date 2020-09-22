@@ -81,11 +81,11 @@ impl ChannelManager {
     }
 }
 
-impl Debug for ChannelManager {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "ChannelManager: {{ channels: {:?}, handler_count: {} }}", self.channels.borrow(), self.handlers.borrow().len())
-    }
-}
+// impl Debug for ChannelManager {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "ChannelManager: {{ channels: {:?}, handler_count: {} }}", self.channels.borrow(), self.handlers.borrow().len())
+//     }
+// }
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
 struct Connection {
@@ -99,7 +99,7 @@ pub struct Channel {
     key_exchanger: Box<dyn DynKeyExchanger + 'static>,
     local_address: usize,
     remote_address: usize,
-    vault: Box<dyn DynValue + 'static>,
+    vault: Box<dyn DynVault + 'static>,
     rekey: Box<dyn ChannelRekeyHandler + 'static>,
 }
 
@@ -131,7 +131,7 @@ impl TryFrom<usize> for ChannelAddress {
             1 => Ok(Self::Local),
             2 => Ok(Self::Remote),
             3 => Ok(Self::KeyExchangeMessage),
-            _ => Err(ChannelErrorKind::GeneralError { msg: "Unknown Channel Address".to_string() })
+            _ => Err(ChannelErrorKind::GeneralError { msg: "Unknown Channel Address".to_string() }.into())
         }
     }
 }
@@ -139,12 +139,7 @@ impl TryFrom<usize> for ChannelAddress {
 impl Channel {
     /// Create a new channel with the specified  and `key_exchanger` method
     pub fn new<K: KeyExchanger + Sync + Send + 'static>(key_exchanger: K, local_address: usize, remote_address: usize) -> Self {
-        Self {
-            exchange_data: None,
-            key_exchanger: Box::new(key_exchanger),
-            local_address,
-            remote_address
-        }
+        unimplemented!();
     }
 
     // /// perform is the key exchange as needed to secure the channel
@@ -177,7 +172,7 @@ impl Channel {
             return Err(ChannelErrorKind::State.into());
         }
 
-        Ok()
+        Ok(vec![])
     }
 
     // pub fn decrypt(&self) -> Result<(), ChannelError> {

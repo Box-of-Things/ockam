@@ -5,7 +5,7 @@ use std::fmt;
 
 /// Represents the failures that can occur in
 /// an Ockam Channel
-#[derive(Clone, Copy, Fail, Debug)]
+#[derive(Clone, Fail, Debug)]
 pub enum ChannelErrorKind {
     /// An invalid parameter was supplied
     #[fail(display = "An invalid parameter was supplied: {}", 0)]
@@ -19,11 +19,15 @@ pub enum ChannelErrorKind {
     /// An error occurred with the internal state of the channel
     #[fail(display = "An error occurred with the internal state of the channel")]
     State,
+    /// The channel with the specified addresses does not exist
     #[fail(display = "The channel with the specified addresses does not exist")]
     UnknownChannel,
     /// A generic string message
     #[fail(display = "{}", msg)]
-    GeneralError{msg: String},
+    GeneralError{
+        /// The underlying reason for the failure
+        msg: String
+    },
 }
 
 impl ChannelErrorKind {
@@ -35,6 +39,8 @@ impl ChannelErrorKind {
             ChannelErrorKind::NotImplemented => Self::ERROR_INTERFACE_CHANNEL | 2,
             ChannelErrorKind::KeyAgreement(_) => Self::ERROR_INTERFACE_CHANNEL | 3,
             ChannelErrorKind::State => Self::ERROR_INTERFACE_CHANNEL | 4,
+            ChannelErrorKind::GeneralError {..} => Self::ERROR_INTERFACE_CHANNEL | 5,
+            ChannelErrorKind::UnknownChannel => Self::ERROR_INTERFACE_CHANNEL | 6,
         }
     }
 }
@@ -72,7 +78,8 @@ impl From<ChannelErrorKind> for ChannelError {
 
 impl From<ChannelError> for ChannelErrorKind {
     fn from(err: ChannelError) -> Self {
-        *err.inner.get_context()
+        let ctx = err.inner.get_context();
+        ctx.clone()
     }
 }
 
